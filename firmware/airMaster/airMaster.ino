@@ -289,10 +289,14 @@ uint8_t DC[8] = {0b01110,  0b11111,  0b11111,  0b11111,  0b11111,  0b11111,  0b1
 void digSeg(byte x, byte y, byte z1, byte z2, byte z3, byte z4, byte z5, byte z6) {   // отображение двух строк по три символа с указанием кодов символов (с)НР
   lcd.setCursor(x, y);
   lcd.write(z1); lcd.write(z2); lcd.write(z3);
-  if (x <= 11) lcd.print(" ");
+  if (x <= 11) {
+    lcd.print(" ");
+  }
   lcd.setCursor(x, y + 1);
   lcd.write(z4); lcd.write(z5); lcd.write(z6);
-  if (x <= 11) lcd.print(" ");
+  if (x <= 11) {
+    lcd.print(" ");
+  }
 }
 
 void drawDig(byte dig, byte x, byte y) {        // рисуем цифры (с)НР ---------------------------------------
@@ -343,8 +347,7 @@ void drawDig(byte dig, byte x, byte y) {        // рисуем цифры (с)�
         digSeg(x, y + 2, 32, 32, 32, 32, 32, 32);
         break;
     }
-  }
-  else {
+  } else {
     switch (dig) {            // двухстрочные цифры
       case 0:
         digSeg(x, y, 255, 1, 255, 255, 2, 255);
@@ -384,8 +387,11 @@ void drawDig(byte dig, byte x, byte y) {        // рисуем цифры (с)�
 }
 
 void drawPPM(int dispCO2, byte x, byte y) {     // Уровень СО2 крупно на главном экране (с)НР ----------------------------
-  if (dispCO2 / 1000 == 0) drawDig(10, x, y);
-  else drawDig(dispCO2 / 1000, x, y);
+  if (dispCO2 / 1000 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispCO2 / 1000, x, y);
+  }
   drawDig((dispCO2 % 1000) / 100, x + 4, y);
   drawDig((dispCO2 % 100) / 10, x + 8, y);
   drawDig(dispCO2 % 10 , x + 12, y);
@@ -402,21 +408,25 @@ void drawPres(int dispPres, byte x, byte y) {   // Давление крупно
   drawDig((dispPres % 100) / 10, x + 4, y);
   drawDig(dispPres % 10 , x + 8, y);
   lcd.setCursor(x + 11, 1);
-  if (bigDig) lcd.setCursor(x + 11, 3);
+  if (bigDig) {
+    lcd.setCursor(x + 11, 3);
+  }
   lcd.print("mm");
 }
 
 void drawTemp(float dispTemp, byte x, byte y) { // Температура крупно на главном экране (с)НР ----------------------------
-  if (dispTemp / 10 == 0) drawDig(10, x, y);
-  else drawDig(dispTemp / 10, x, y);
+  if (dispTemp / 10 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispTemp / 10, x, y);
+  }
   drawDig(int(dispTemp) % 10, x + 4, y);
   drawDig(int(dispTemp * 10.0) % 10, x + 9, y);
 
   if (bigDig && DISPLAY_TYPE == 1) {
     lcd.setCursor(x + 7, y + 3);
     lcd.write(1);             // десятичная точка
-  }
-  else {
+  } else {
     lcd.setCursor(x + 7, y + 1);
     lcd.write(0B10100001);    // десятичная точка
   }
@@ -425,27 +435,37 @@ void drawTemp(float dispTemp, byte x, byte y) { // Температура кру
 }
 
 void drawHum(int dispHum, byte x, byte y) {   // Влажность крупно на главном экране (с)НР ----------------------------
-  if (dispHum / 100 == 0) drawDig(10, x, y);
-  else drawDig(dispHum / 100, x, y);
-  if ((dispHum % 100) / 10 == 0) drawDig(0, x + 4, y);
-  else drawDig(dispHum / 10, x + 4, y);
+  if (dispHum / 100 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispHum / 100, x, y);
+  }
+  if ((dispHum % 100) / 10 == 0) {
+    drawDig(0, x + 4, y);
+  } else {
+    drawDig(dispHum / 10, x + 4, y);
+  }
   drawDig(int(dispHum) % 10, x + 8, y);
   if (bigDig && DISPLAY_TYPE == 1) {
     lcd.setCursor(x + 12, y + 1);
     lcd.print("\245\4");
     lcd.setCursor(x + 12, y + 2);
     lcd.print("\5\245");
-  }
-  else {
+  } else {
     lcd.setCursor(x + 12, y + 1);
     lcd.print("%");
   }
 }
 
 void drawClock(byte hours, byte minutes, byte x, byte y) {    // рисуем время крупными цифрами -------------------------------------------
-  if (hours > 23 || minutes > 59) return;
-  if (hours / 10 == 0) drawDig(10, x, y);
-  else drawDig(hours / 10, x, y);
+  if (hours > 23 || minutes > 59) {
+    return;
+  }
+  if (hours / 10 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(hours / 10, x, y);
+  }
   drawDig(hours % 10, x + 4, y);
   // тут должны быть точки. Отдельной функцией
   drawDig(minutes / 10, x + 8, y);
@@ -476,13 +496,19 @@ static const char *dayNames[]  = {  // доработал дни недели н
 
 void drawData() {                     // выводим дату -------------------------------------------------------------
   int Y = 0;
-  if (DISPLAY_TYPE == 1 && mode0scr == 1) Y = 2;
+  if (DISPLAY_TYPE == 1 && mode0scr == 1) {
+    Y = 2;
+  }
   if (!bigDig) {              // если 4-х строчные цифры, то дату, день недели (и секунды) не пишем - некуда (с)НР
     lcd.setCursor(15, 0 + Y);
-    if (now.day() < 10) lcd.print(0);
+    if (now.day() < 10) {
+      lcd.print(0);
+    }
     lcd.print(now.day());
     lcd.print(".");
-    if (now.month() < 10) lcd.print(0);
+    if (now.month() < 10) {
+      lcd.print(0);
+    }
     lcd.print(now.month());
 
     if (DISP_MODE == 0) {
@@ -519,7 +545,7 @@ void drawPlot(byte pos, byte row, byte width, byte height, int min_val, int max_
     lcd.setCursor(15, 3);
     lcd.write(0);
 #endif
-  }  else {
+  } else {
 #if (DISPLAY_TYPE == 1)
     lcd.write(0);
     lcd.setCursor(15, 3);
@@ -549,9 +575,11 @@ void drawPlot(byte pos, byte row, byte width, byte height, int min_val, int max_
     fill_val = constrain(fill_val, min_val, max_val);
     byte infill, fract;
     // найти количество целых блоков с учётом минимума и максимума для отображения на графике
-    if ((plot_array[i]) > min_val)
+    if ((plot_array[i]) > min_val) {
       infill = floor((float)(plot_array[i] - min_val) / (max_val - min_val) * height * 10);
-    else infill = 0;
+    } else {
+      infill = 0;
+    }
     fract = (float)(infill % 10) * 8 / 10;            // найти количество оставшихся полосок
     infill = infill / 10;
 
@@ -562,14 +590,19 @@ void drawPlot(byte pos, byte row, byte width, byte height, int min_val, int max_
       }
       if (n >= infill) {                    // если достигли уровня
         lcd.setCursor(i, (row - n));
-        if (n == 0 && fract == 0) fract++;      // если нижний перел графика имеет минимальное значение, то рисуем одну полоску, чтобы не было пропусков (с)НР
-        if (fract > 0) lcd.write(fract);        // заполняем дробные ячейки
-        else lcd.write(16);                     // если дробные == 0, заливаем пустой
+        if (n == 0 && fract == 0) {         // если нижний перел графика имеет минимальное значение, то рисуем одну полоску, чтобы не было пропусков (с)НР
+          fract++;
+        }
+        if (fract > 0) {                   // заполняем дробные ячейки
+          lcd.write(fract);
+        } else {                           // если дробные == 0, заливаем пустой
+          lcd.write(16);
+        }
         for (byte k = n + 1; k < height; k++) { // всё что сверху заливаем пустыми
           lcd.setCursor(i, (row - k));
           lcd.write(16);
         }
-        break;
+        break; //TODO do we need this here?
       }
     }
   }
@@ -583,8 +616,7 @@ void loadClock() {
     lcd.createChar(3, row5);
     lcd.createChar(4, KU);
     lcd.createChar(5, KD);
-  }
-  else {                                            // для двустрочных цифр (с)НР
+  } else {                                            // для двустрочных цифр (с)НР
     lcd.createChar(0, row2);
     lcd.createChar(1, UB);
     lcd.createChar(2, row3);
@@ -593,7 +625,7 @@ void loadClock() {
     lcd.createChar(5, LM2);
   }
 
-  if (now.dayOfTheWeek() == 4)  {          // Для четверга в ячейку запоминаем "Ч", для субботы "Б", иначе "П" (с)НР
+  if (now.dayOfTheWeek() == 4) {          // Для четверга в ячейку запоминаем "Ч", для субботы "Б", иначе "П" (с)НР
     lcd.createChar(7, CH);  // Ч (с)НР
   } else if (now.dayOfTheWeek() == 6) {
     lcd.createChar(7, BB);  // Б (с)НР
@@ -634,14 +666,21 @@ void setLED() {
   } else {
     checkBrightness();
   }
-  if (LED_MODE != 0) LED_ON = 255 - LED_ON;
+  if (LED_MODE != 0) {
+    LED_ON = 255 - LED_ON;
+  }
 
   // ниже задается цвет индикатора в зависимости от назначенного сенсора: красный, желтый, зеленый, синий (с)НР
 
-  if ((dispCO2 >= maxCO2) && LEDType == 0 || (dispHum <= minHum) && LEDType == 1 || (dispTemp >= maxTemp) && LEDType == 2 || (dispRain <= minRain) && LEDType == 3 || (dispPres <= minPress) && LEDType == 4) setLEDcolor(3);   // красный
-  else if ((dispCO2 >= normCO2) && LEDType == 0 || (dispHum <= normHum) && LEDType == 1 || (dispTemp >= normTemp) && LEDType == 2 || (dispRain <= normRain) && LEDType == 3 || (dispPres <= normPress) && LEDType == 4) setLEDcolor(3 + 8);   // желтый
-  else if (LEDType == 0 || (dispHum <= maxHum) && LEDType == 1 || (dispTemp >= minTemp) && LEDType == 2 || (dispRain <= maxRain) && LEDType == 3 || LEDType == 4) setLEDcolor(12);    // зеленый
-  else setLEDcolor(48);   // синий (если влажность превышает заданный максимум, температура ниже минимума, вероятность осадков выше maxRain)
+  if ((dispCO2 >= maxCO2) && LEDType == 0 || (dispHum <= minHum) && LEDType == 1 || (dispTemp >= maxTemp) && LEDType == 2 || (dispRain <= minRain) && LEDType == 3 || (dispPres <= minPress) && LEDType == 4) {
+    setLEDcolor(3);   // красный
+  } else if ((dispCO2 >= normCO2) && LEDType == 0 || (dispHum <= normHum) && LEDType == 1 || (dispTemp >= normTemp) && LEDType == 2 || (dispRain <= normRain) && LEDType == 3 || (dispPres <= normPress) && LEDType == 4) {
+    setLEDcolor(3 + 8);   // желтый
+  } else if (LEDType == 0 || (dispHum <= maxHum) && LEDType == 1 || (dispTemp >= minTemp) && LEDType == 2 || (dispRain <= maxRain) && LEDType == 3 || LEDType == 4) {
+    setLEDcolor(12);    // зеленый
+  } else {
+    setLEDcolor(48);   // синий (если влажность превышает заданный максимум, температура ниже минимума, вероятность осадков выше maxRain)
+  }
 }
 
 void setup() {
@@ -760,8 +799,10 @@ void setup() {
                   Adafruit_BME280::SAMPLING_X1, // humidity
                   Adafruit_BME280::FILTER_OFF);
 
-  if (RESET_CLOCK || rtc.lostPower())
+  if (RESET_CLOCK || rtc.lostPower()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
   lcd.clear();
   now = rtc.now();
   secs = now.second();
@@ -775,8 +816,6 @@ void setup() {
     //time_array[i] = i;                    // забить массив времени числами 0 - 5
   }
 
-  //dispAlt = (float)bme.readAltitude(SEALEVELPRESSURE_HPA);
-
   // заполняем графики текущим значением
   readSensors();
   for (byte i = 0; i < 15; i++) {   // счётчик от 0 до 14
@@ -784,35 +823,44 @@ void setup() {
     tempDay[i] = dispTemp;
     humHour[i] = dispHum;
     humDay[i] = dispHum;
-    //    rainHour[i] = 0;
-    //    rainDay[i] = 0;
-    if (PRESSURE) {
+#if (PRESSURE == 1)
       pressHour[i] = 0;
       pressDay[i] = 0;
-    } else {
+#else
       pressHour[i] = dispPres;
       pressDay[i] = dispPres;
-    }
-
+#endif
   }
 
-  if (DISPLAY_TYPE == 1) drawData();
+  if (DISPLAY_TYPE == 1) {
+    drawData();
+  }
   loadClock();
   // readSensors();
   drawSensors();
 }
 
 void loop() {
-  if (testTimer(brightTimerD, brightTimer)) checkBrightness();  // яркость
-  if (testTimer(sensorsTimerD, sensorsTimer)) readSensors();    // читаем показания датчиков с периодом SENS_TIME
+  if (testTimer(brightTimerD, brightTimer)) {
+    checkBrightness();  // яркость
+  }
+  if (testTimer(sensorsTimerD, sensorsTimer)) {
+    readSensors();    // читаем показания датчиков с периодом SENS_TIME
+  }
   DEBUGLN(dispTemp);
 
-  if (testTimer(clockTimerD, clockTimer)) clockTick();          // два раза в секунду пересчитываем время и мигаем точками
+  if (testTimer(clockTimerD, clockTimer)) {
+    clockTick();          // два раза в секунду пересчитываем время и мигаем точками
+  }
   plotSensorsTick();                                // тут внутри несколько таймеров для пересчёта графиков (за час, за день и прогноз)
   modesTick();                                      // тут ловим нажатия на кнопку и переключаем режимы
   if (mode == 0) {                                  // в режиме "главного экрана"
-    if (testTimer(drawSensorsTimerD, drawSensorsTimer)) drawSensors();  // обновляем показания датчиков на дисплее с периодом SENS_TIME
+    if (testTimer(drawSensorsTimerD, drawSensorsTimer)) {
+      drawSensors();  // обновляем показания датчиков на дисплее с периодом SENS_TIME
+    }
   } else {                                          // в любом из графиков
-    if (testTimer(plotTimerD, plotTimer)) redrawPlot();  // перерисовываем график
+    if (testTimer(plotTimerD, plotTimer)) {
+      redrawPlot();  // перерисовываем график
+    }
   }
 }

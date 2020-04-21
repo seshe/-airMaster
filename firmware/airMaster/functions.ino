@@ -46,14 +46,18 @@ void modesTick() {
       switch (mode) {
         case 252:             // Перебираем все варианты режимов LED индикатора (с)НР
           //         podMode++;
-          if (podMode > 4) podMode = 0;
+          if (podMode > 4) {
+            podMode = 0;
+          }
           LEDType = podMode;
           changeFlag = true;
           break;
 
         case 253:             // Перебираем все варианты яркости LCD экрана (с)НР
           //         podMode++;
-          if (podMode > 11) podMode = 0;
+          if (podMode > 11) {
+            podMode = 0;
+          }
           LCD_BRIGHT = podMode;
           checkBrightness();
           changeFlag = true;
@@ -61,21 +65,27 @@ void modesTick() {
 
         case 254:             // Перебираем все варианты яркости LED индикатора (с)НР
           //         podMode++;
-          if (podMode > 11) podMode = 0;
+          if (podMode > 11) {
+            podMode = 0;
+          }
           LED_BRIGHT = podMode;
           changeFlag = true;
           break;
 
         case 255:             // Перебираем все варианты основных настроек (с)НР
           //         podMode++;
-          if (podMode > 15) podMode = 1;
+          if (podMode > 15) {
+            podMode = 1;
+          }
           changeFlag = true;
           break;
       }
     } else {
       do {
         mode++;
-        if (mode > 10) mode = 0;
+        if (mode > 10) {
+          mode = 0;
+        }
 #if (CO2_SENSOR == 0 && mode == 1)
         mode = 3;
 #endif
@@ -88,9 +98,15 @@ void modesTick() {
       MAX_ONDATA = (int)MAX_ONDATA ^ (1 << (mode - 1));
     } else if (mode == 0)  {
       mode0scr++;
-      if (CO2_SENSOR == 0 && mode0scr == 1) mode0scr++;
-      if (mode0scr > 4) mode0scr = 0;         // Переключение рехима работы главного экрана (с)НР
-    } else if (mode > 240) podMode = 1;       // Переключение на меню сохранения (с)НР
+      if (CO2_SENSOR == 0 && mode0scr == 1) {
+        mode0scr++;
+      }
+      if (mode0scr > 4) {
+        mode0scr = 0;         // Переключение рехима работы главного экрана (с)НР
+      }
+    } else if (mode > 240) {
+      podMode = 1;       // Переключение на меню сохранения (с)НР
+    }
     changeFlag = true;
   }
 
@@ -122,25 +138,59 @@ void modesTick() {
         podMode = 1;
         break;
       case 255:       // главное меню
-        if (podMode == 2 || podMode == 1) mode = 0;                   // если Выход или Сохранить
-        if (podMode >= 3 && podMode <= 5) mode = 255 - podMode + 2;   // если настройки яркостей, то переключаемся в настройки пункта меню
-        if (podMode >= 6 && podMode <= 17) VIS_ONDATA = VIS_ONDATA ^ (1 << (podMode - 6));  // вкл/выкл отображения графиков
-        if (podMode == 1) {                                           // если Сохранить
-          if (EEPROM.read(2) != (MAX_ONDATA & 255)) EEPROM.write(2, (MAX_ONDATA & 255));
-          if (EEPROM.read(3) != (MAX_ONDATA >> 8)) EEPROM.write(3, (MAX_ONDATA >> 8));
-          if (EEPROM.read(4) != (VIS_ONDATA & 255)) EEPROM.write(4, (VIS_ONDATA & 255));
-          if (EEPROM.read(5) != (VIS_ONDATA >> 8)) EEPROM.write(5, (VIS_ONDATA >> 8));
-          if (EEPROM.read(6) != mode0scr) EEPROM.write(6, mode0scr);
-          if (EEPROM.read(7) != bigDig) EEPROM.write(7, bigDig);
-          if (EEPROM.read(8) != LED_BRIGHT) EEPROM.write(8, LED_BRIGHT);
-          if (EEPROM.read(9) != LCD_BRIGHT) EEPROM.write(9, LCD_BRIGHT);
-          if (EEPROM.read(10) != LEDType) EEPROM.write(10, LEDType);
-          if (EEPROM.read(0) != 122) EEPROM.write(0, 122);
+        if (podMode == 2 || podMode == 1) {
+          mode = 0;                   // если Выход или Сохранить
         }
-        if (podMode < 6) podMode = 1;
-        if (mode == 252) podMode = LEDType;     // если выбран режим LED - устанавливаем текущее значение (с)НР
-        if (mode == 254) podMode = LED_BRIGHT;  // если выбрана яркость LED - устанавливаем текущее показание (с)НР
-        if (mode == 253) podMode = LCD_BRIGHT;  // если выбрана яркость LCD - устанавливаем текущее показание (с)НР
+        if (podMode >= 3 && podMode <= 5) {
+          mode = 255 - podMode + 2;   // если настройки яркостей, то переключаемся в настройки пункта меню
+        }
+        if (podMode >= 6 && podMode <= 17) {
+          VIS_ONDATA = VIS_ONDATA ^ (1 << (podMode - 6));  // вкл/выкл отображения графиков
+        }
+        if (podMode == 1) {                                           // если Сохранить
+          if (EEPROM.read(2) != (MAX_ONDATA & 255)) {
+            EEPROM.write(2, (MAX_ONDATA & 255));
+          }
+          if (EEPROM.read(3) != (MAX_ONDATA >> 8)) {
+            EEPROM.write(3, (MAX_ONDATA >> 8));
+          }
+          if (EEPROM.read(4) != (VIS_ONDATA & 255)) {
+            EEPROM.write(4, (VIS_ONDATA & 255));
+          }
+          if (EEPROM.read(5) != (VIS_ONDATA >> 8)) {
+            EEPROM.write(5, (VIS_ONDATA >> 8));
+          }
+          if (EEPROM.read(6) != mode0scr) {
+            EEPROM.write(6, mode0scr);
+          }
+          if (EEPROM.read(7) != bigDig) {
+            EEPROM.write(7, bigDig);
+          }
+          if (EEPROM.read(8) != LED_BRIGHT) {
+            EEPROM.write(8, LED_BRIGHT);
+          }
+          if (EEPROM.read(9) != LCD_BRIGHT) {
+            EEPROM.write(9, LCD_BRIGHT);
+          }
+          if (EEPROM.read(10) != LEDType) {
+            EEPROM.write(10, LEDType);
+          }
+          if (EEPROM.read(0) != 122) {
+            EEPROM.write(0, 122);
+          }
+        }
+        if (podMode < 6) {
+          podMode = 1;
+        }
+        if (mode == 252) {      // если выбран режим LED - устанавливаем текущее значение (с)НР
+          podMode = LEDType;
+        }
+        if (mode == 254) {      // если выбрана яркость LED - устанавливаем текущее показание (с)НР
+          podMode = LED_BRIGHT;
+        }
+        if (mode == 253) {      // если выбрана яркость LCD - устанавливаем текущее показание (с)НР
+          podMode = LCD_BRIGHT;
+        }
         break;
       default:
         mode = 0;
@@ -216,7 +266,9 @@ void modesTick() {
         lcd.print("Charts  ");
 #endif
         lcd.setCursor(0, 1);
-        if ((3 & (1 << (podMode - 6))) != 0) lcd.print("CO2 ");
+        if ((3 & (1 << (podMode - 6))) != 0) {
+           lcd.print("CO2 ");
+        }
         if ((12 & (1 << (podMode - 6))) != 0) {
 #if (WEEK_LANG == 1)
           lcd.print("B\5,% ");
@@ -224,10 +276,15 @@ void modesTick() {
           lcd.print("Hum,%");
 #endif
         }
-        if ((48 & (1 << (podMode - 6))) != 0) lcd.print("t\337 ");
+        if ((48 & (1 << (podMode - 6))) != 0) {
+          lcd.print("t\337 ");
+        }
         if ((192 & (1 << (podMode - 6))) != 0) {
-          if (PRESSURE) lcd.print("p,rain ");
-          else lcd.print("p,mmPT ");
+#if (PRESSURE == 1)
+          lcd.print("p,rain ");
+#else
+          lcd.print("p,mmPT ");
+#endif
         }
         if ((768 & (1 << (podMode - 6))) != 0) {
 #if (WEEK_LANG == 1)
@@ -259,8 +316,7 @@ void modesTick() {
 #else
           lcd.print("On  ");
 #endif
-        }
-        else {
+        } else {
 #if (WEEK_LANG == 1)
           lcd.print("B\6K\5");
 #else
@@ -326,8 +382,7 @@ void modesTick() {
 #else
         lcd.print("Auto ");
 #endif
-      }
-      else lcd.print(String(LCD_BRIGHT * 10) + "%");
+      } else lcd.print(String(LCD_BRIGHT * 10) + "%");
     }
     if (mode == 254) {                        // --------------------- показать  "Ярк.индикатора"
 #if (WEEK_LANG == 1)
@@ -342,8 +397,7 @@ void modesTick() {
 #else
         lcd.print("Auto ");
 #endif
-      }
-      else lcd.print(String(LED_BRIGHT * 10) + "%");
+      } else lcd.print(String(LED_BRIGHT * 10) + "%");
     }
 
     if (mode == 0) {
@@ -478,7 +532,6 @@ void drawSensors() {
     if (dispRain < 0) lcd.setCursor(10, 3);
     lcd.print(String(dispRain) + "%");
     //  lcd.setCursor(14, 3);
-    //  lcd.print(bme.readAltitude(SEALEVELPRESSURE_HPA));  // высота над уровнем моря (с)НР
   }
 
   if (mode0scr != 0) {                      // время (с)НР ----------------------------
@@ -545,12 +598,13 @@ void plotSensorsTick() {
     }
     tempHour[14] = dispTemp;
     humHour[14] = dispHum;
-    pressHour[14] = dispPres;
-    //    rainHour[14] = dispRain;
     co2Hour[14] = dispCO2;
 
-    if (PRESSURE) pressHour[14] = dispRain;
-    else pressHour[14] = dispPres;
+#if (PRESSURE == 1)
+    pressHour[14] = dispRain;
+#else
+    pressHour[14] = dispPres;
+#endif
   }
 
   // 1.5 или 2 часовой таймер
@@ -640,13 +694,21 @@ void clockTick() {
       secs = now.second();
       mins = now.minute();
       hrs = now.hour();
-      if (mode == 0) drawSensors();
-      if (hrs > 23) hrs = 0;
-      if (mode == 0 && DISPLAY_TYPE) drawData();
+      if (mode == 0) {
+        drawSensors();
+      }
+      if (hrs > 23) {
+        hrs = 0;
+      }
+      if (mode == 0 && DISPLAY_TYPE) {
+        drawData();
+      }
     }
     if ((DISP_MODE != 0 && mode == 0) && DISPLAY_TYPE == 1 && !bigDig) {   // Если режим секунд или дни недели по-русски, и 2-х строчные цифры то показывать секунды (с)НР
       lcd.setCursor(15, 1);
-      if (secs < 10) lcd.print(" ");
+      if (secs < 10) {
+         lcd.print(" ");
+      }
       lcd.print(secs);
     }
   }
@@ -655,46 +717,70 @@ void clockTick() {
 
     if (!bigDig && powerStatus != 255 && DISPLAY_TYPE == 1) {          // отображаем статус питания (с)НР
 
-      if (analogRead(A1) > 900 || analogRead(A0) < 300 || (analogRead(A1) < 300 && analogRead(A0) < 300)) powerStatus = 0;
-      else powerStatus = (constrain((int)analogRead(A0) * 5.2 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1;
+      if (analogRead(A1) > 900 || analogRead(A0) < 300 || (analogRead(A1) < 300 && analogRead(A0) < 300)) {
+         powerStatus = 0;
+      } else {
+        powerStatus = (constrain((int)analogRead(A0) * 5.2 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1;
+      }
 
       if (powerStatus) {
         for (byte i = 2; i <= 6; i++) {         // рисуем уровень заряда батареи (с)НР
-          if ((7 - powerStatus) < i) DC[i] = 0b11111;
-          else DC[i] = 0b10001;
+          if ((7 - powerStatus) < i) {
+            DC[i] = 0b11111;
+          } else {
+            DC[i] = 0b10001;
+          }
         }
         lcd.createChar(6, DC);
-      } else lcd.createChar(6, AC);
+      } else {
+        lcd.createChar(6, AC);
+      }
 
-      if (mode0scr != 1) lcd.setCursor(19, 2);
-      else lcd.setCursor(19, 0);
-      if (!dotFlag && powerStatus == 1) lcd.write(32);
-      else lcd.write(6);
+      if (mode0scr != 1) {
+        lcd.setCursor(19, 2);
+      } else {
+        lcd.setCursor(19, 0);
+      }
+      if (!dotFlag && powerStatus == 1) {
+        lcd.write(32);
+      } else {
+        lcd.write(6);
+      }
     }
     
     //отладка (с)НР
     //Serial.print("Значение: " + String(analogRead(A0))); Serial.print(" Напряжение0: " + String(analogRead(A0) * 5.2 / 1023.0)); Serial.print(" Напряжение1: " + String(analogRead(A1) * 5.2 / 1023.0)); Serial.print(" Статус: " + String(powerStatus));  Serial.println(" Статус2: " + String((constrain((int)analogRead(A0) * 5.0 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1)); 
     byte code;
-    if (dotFlag) code = 165;
-    else code = 32;
+    if (dotFlag) {
+      code = 165;
+    } else {
+      code = 32;
+    }
     if (mode0scr == 0 && (bigDig && DISPLAY_TYPE == 0 || DISPLAY_TYPE == 1)) {          // мигание большими точками только в нулевом режиме главного экрана (с)НР
-      if (bigDig && DISPLAY_TYPE == 1) lcd.setCursor(7, 2);
-      else lcd.setCursor(7, 0);
+      if (bigDig && DISPLAY_TYPE == 1) {
+        lcd.setCursor(7, 2);
+      } else {
+        lcd.setCursor(7, 0);
+      }
       lcd.write(code);
       lcd.setCursor(7, 1);
       lcd.write(code);
-    }
-    else {
+    } else {
 #if (DISPLAY_TYPE == 1)
-      if (code == 165) code = 58;
+      if (code == 165) {
+        code = 58;
+      }
       lcd.setCursor(17, 3);
       lcd.write(code);
 #endif
     }
   }
 
-  if ((dispCO2 >= blinkLEDCO2 && LEDType == 0 || dispHum <= blinkLEDHum && LEDType == 1 || dispTemp >= blinkLEDTemp && LEDType == 2) && !dotFlag) setLEDcolor(0);     // мигание индикатора в зависимости от значения и привязанного сенсора (с)НР
-  else setLED();
+  if ((dispCO2 >= blinkLEDCO2 && LEDType == 0 || dispHum <= blinkLEDHum && LEDType == 1 || dispTemp >= blinkLEDTemp && LEDType == 2) && !dotFlag) {
+     setLEDcolor(0);     // мигание индикатора в зависимости от значения и привязанного сенсора (с)НР
+  } else {
+    setLED();
+  }
 }
 
 boolean testTimer(unsigned long & dataTimer, unsigned long setTimer) {   // Проверка таймеров (с)НР
