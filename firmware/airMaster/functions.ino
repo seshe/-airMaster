@@ -89,7 +89,7 @@ void modesTick() {
     } else if (mode == 0)  {
       mode0scr++;
       if (CO2_SENSOR == 0 && mode0scr == 1) mode0scr++;
-      if (mode0scr > 5) mode0scr = 0;         // Переключение рехима работы главного экрана (с)НР
+      if (mode0scr > 4) mode0scr = 0;         // Переключение рехима работы главного экрана (с)НР
     } else if (mode > 240) podMode = 1;       // Переключение на меню сохранения (с)НР
     changeFlag = true;
   }
@@ -383,10 +383,6 @@ void redrawPlot() {
       break;
     case 8: drawPlot(0, 3, 15, 4, PRESS_MIN, PRESS_MAX, (int*)pressDay, "p ", "da", mode);
       break;
-    //case 9: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altHour, "m ", "hr", mode);
-      //break;
-    //case 10: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altDay, "m ", "da", mode);
-      //break;
   }
 #else                         // для дисплея 1602
   switch (mode) {
@@ -410,10 +406,6 @@ void redrawPlot() {
       break;
     case 8: drawPlot(0, 1, 12, 2, PRESS_MIN, PRESS_MAX, (int*)pressDay, "p", "d", mode);
       break;
-    //case 9: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altHour, "m", "h", mode);
-      //break;
-    //case 10: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altDay, "m", "d", mode);
-      //break;
   }
 #endif
 }
@@ -422,7 +414,6 @@ void readSensors() {
   bme.takeForcedMeasurement();
   dispTemp = bme.readTemperature();
   dispHum = bme.readHumidity();
-  //dispAlt = ((float)dispAlt * 1 + bme.readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
   dispPres = (float)bme.readPressure() * 0.00750062;
 #if (CO2_SENSOR == 1)
   dispCO2 = mhz19.getPPM();
@@ -479,11 +470,6 @@ void drawSensors() {
   } else {
     drawPres(dispPres, 0, 0);
   }
-
-  //if (mode0scr != 5) {                      // Высота (с)НР ----------------------------
-  //} else {                                  // мелко высоту не выводим (с)НР
-    //drawAlt(dispAlt, 0, 0);
-  //}
 
   if (!bigDig) {                            // дождь (с)НР -----------------------------
     lcd.setCursor(5, 3);
@@ -542,9 +528,6 @@ void drawSensors() {
       case 4:
         drawHum(dispHum, 0, 0);
         break;
-      //case 5:
-        //drawHum(dispAlt, 0, 0);
-        //break;
     }
   }
 #endif
@@ -558,14 +541,12 @@ void plotSensorsTick() {
       humHour[i] = humHour[i + 1];
       pressHour[i] = pressHour[i + 1];
       //      rainHour[i] = rainHour[i + 1];
-      altHour[i] = altHour[i + 1];
       co2Hour[i] = co2Hour[i + 1];
     }
     tempHour[14] = dispTemp;
     humHour[14] = dispHum;
     pressHour[14] = dispPres;
     //    rainHour[14] = dispRain;
-    //altHour[14] = dispAlt;
     co2Hour[14] = dispCO2;
 
     if (PRESSURE) pressHour[14] = dispRain;
@@ -574,21 +555,19 @@ void plotSensorsTick() {
 
   // 1.5 или 2 часовой таймер
   if (testTimer(dayPlotTimerD, dayPlotTimer)) {
-    long averTemp = 0, averHum = 0, averPress = 0, averAlt = 0, averCO2 = 0; //, averRain = 0
+    long averTemp = 0, averHum = 0, averPress = 0, averCO2 = 0; //, averRain = 0
 
     for (byte i = 0; i < 15; i++) {
       averTemp += tempHour[i];
       averHum += humHour[i];
       averPress += pressHour[i];
       //      averRain += rainHour[i];
-      averAlt += altHour[i];
       averCO2 += co2Hour[i];
     }
     averTemp /= 15;
     averHum /= 15;
     averPress /= 15;
     //    averRain /= 15;
-    averAlt /= 15;
     averCO2 /= 15;
 
     for (byte i = 0; i < 14; i++) {
@@ -596,14 +575,12 @@ void plotSensorsTick() {
       humDay[i] = humDay[i + 1];
       pressDay[i] = pressDay[i + 1];
       //      rainDay[i] = rainDay[i + 1];
-      altDay[i] = altDay[i + 1];
       co2Day[i] = co2Day[i + 1];
     }
     tempDay[14] = averTemp;
     humDay[14] = averHum;
     pressDay[14] = averPress;
     //    rainDay[14] = averRain;
-    altDay[14] = averAlt;
     co2Day[14] = averCO2;
   }
 
@@ -694,8 +671,9 @@ void clockTick() {
       if (!dotFlag && powerStatus == 1) lcd.write(32);
       else lcd.write(6);
     }
-    //Serial.print("Значение: " + String(analogRead(A0))); Serial.print(" Напряжение0: " + String(analogRead(A0) * 5.2 / 1023.0)); Serial.print(" Напряжение1: " + String(analogRead(A1) * 5.2 / 1023.0)); Serial.print(" Статус: " + String(powerStatus));  Serial.println(" Статус2: " + String((constrain((int)analogRead(A0) * 5.0 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1)); //отладка (с)НР
-
+    
+    //отладка (с)НР
+    //Serial.print("Значение: " + String(analogRead(A0))); Serial.print(" Напряжение0: " + String(analogRead(A0) * 5.2 / 1023.0)); Serial.print(" Напряжение1: " + String(analogRead(A1) * 5.2 / 1023.0)); Serial.print(" Статус: " + String(powerStatus));  Serial.println(" Статус2: " + String((constrain((int)analogRead(A0) * 5.0 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1)); 
     byte code;
     if (dotFlag) code = 165;
     else code = 32;

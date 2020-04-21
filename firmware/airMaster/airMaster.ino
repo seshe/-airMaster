@@ -42,7 +42,6 @@
 #define RESET_CLOCK 0     // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
 #define SENS_TIME 10000   // время обновления показаний сенсоров на экране, миллисекунд
 #define LED_MODE 0        // тип RGB светодиода: 0 - главный катод, 1 - главный анод
-//#define SEALEVELPRESSURE_HPA (1013.25) // Коэффициент для расчета высоты над уровнем моря
 
 // управление яркостью
 byte LED_BRIGHT = 10;         // при отсутствии сохранения в EEPROM: яркость светодиода СО2 (0 - 10) (коэффициент настраиваемой яркости индикатора по умолчанию, если нет сохранения и не автоматическая регулировка (с)НР)
@@ -57,7 +56,6 @@ byte powerStatus = 0;         // индикатор вида питания: 255
 
 #define DISP_MODE 1       // в правом верхнем углу отображать: 0 - год, 1 - день недели и секунды
 #define WEEK_LANG 1       // язык дня недели: 0 - английский, 1 - русский
-//#define DEBUG 0           // вывод на дисплей лог инициализации датчиков при запуске. Для дисплея 1602 не работает! Но дублируется через порт!
 #define PRESSURE 0        // 0 - график давления, 1 - график прогноза дождя (вместо давления). Не забудь поправить пределы графика
 #define CO2_SENSOR 1      // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
 #define DISPLAY_TYPE 1    // тип дисплея: 1 - 2004 (большой), 0 - 1602 (маленький)
@@ -110,12 +108,8 @@ int VIS_ONDATA = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048; /
 #define HUM_MAX 100
 #define PRESS_MIN 720
 #define PRESS_MAX 760
-//#define PRESS_MIN -100
-//#define PRESS_MAX 100
 #define CO2_MIN 400
 #define CO2_MAX 2000
-//#define ALT_MIN 0
-//#define ALT_MAX 1000
 
 // адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
 // стоковый адрес был 0x77, у китайского модуля адрес 0x76.
@@ -199,8 +193,6 @@ byte mode = 0;
   6 график температуры за сутки
   7 график дождя/давления за час
   8 график дождя/давления за сутки
-  //9 график высоты за час
-  //10 график высоты за сутки
 */
 
 byte podMode = 1; // подрежим меню(с)НР
@@ -211,7 +203,6 @@ byte mode0scr = 0;
   2 - Крупно температура
   3 - Крупно давление
   4 - Крупно влажность
-  //5 - Крупно высота
 */
 boolean bigDig = false;   // true - цифры на главном экране на все 4 строки (для LCD 2004) (с)НР
 
@@ -221,18 +212,16 @@ byte dispHum;
 int dispPres;
 int dispCO2 = -1;
 int dispRain;
-//float dispAlt;  //int
 
 // массивы графиков
 int tempHour[15], tempDay[15];
-//#define tempK 40                //поправочный поэффициент, чтобы показания влезли в байт
+//#define tempK 40                //поправочный коэффициент, чтобы показания влезли в байт
 int humHour[15], humDay[15];
 int pressHour[15], pressDay[15];
-//#define pressK -600             //поправочный поэффициент, чтобы показания влезли в байт
+//#define pressK -600             //поправочный коэффициент, чтобы показания влезли в байт
 int rainHour[15], rainDay[15];
-//#define rainK 100               //поправочный поэффициент, чтобы показания влезли в байт
+//#define rainK 100               //поправочный коэффициент, чтобы показания влезли в байт
 int co2Hour[15], co2Day[15];
-int altHour[15], altDay[15];      // высота
 int delta;
 uint32_t pressure_array[6];
 uint32_t sumX, sumY, sumX2, sumXY;
@@ -416,30 +405,6 @@ void drawPres(int dispPres, byte x, byte y) {   // Давление крупно
   if (bigDig) lcd.setCursor(x + 11, 3);
   lcd.print("mm");
 }
-/*
-void drawAlt(float dispAlt, byte x, byte y) {   // Высота крупно на главном экране (с)НР -----------------------------
-  if (dispAlt >= 1000) {
-    drawDig((int(dispAlt) % 10000) / 1000, x , y);
-    x += 4;
-  }
-  drawDig((int(dispAlt) % 1000) / 100, x , y);
-  drawDig((int(dispAlt) % 100) / 10, x + 4, y);
-  drawDig(int(dispAlt) % 10 , x + 8, y);
-  if (dispAlt < 1000) {       // десятые доли метра, если высота ниже 1000 м. (с)НР
-    //   drawDig((int(dispAlt * 10.0)) % 10 , x + 12, y);         // десятые крупными цифрами (тогда буква m наезжает на последнюю цифру)
-    lcd.setCursor(x + 12, y + 1 + (bigDig && DISPLAY_TYPE) * 2);  // десятые мелкими цифрами
-    lcd.print((int(dispAlt * 10.0)) % 10);
-    if (bigDig && DISPLAY_TYPE == 1) lcd.setCursor(x + 11, y + 3);
-    else lcd.setCursor(x + 11, y + 1);
-    lcd.print(".");
-    x -= 1; // сдвинуть букву m левее
-  }  else {
-    x -= 4;
-  }
-  if (bigDig && DISPLAY_TYPE == 1) lcd.setCursor(x + 14, 3);
-  else lcd.setCursor(x + 14, 1);
-  lcd.print("m");
-}*/
 
 void drawTemp(float dispTemp, byte x, byte y) { // Температура крупно на главном экране (с)НР ----------------------------
   if (dispTemp / 10 == 0) drawDig(10, x, y);
@@ -710,7 +675,7 @@ void setup() {
   lcd.backlight();
   lcd.clear();
 
-#if (DEBUG_ENABLE && DISPLAY_TYPE == 1)
+#if (DEBUG_ENABLE && DISPLAY_TYPE == 1)// вывод на дисплей лог инициализации датчиков при запуске. Для дисплея 1602 не работает! Но дублируется через порт!
   boolean status = true;
 
   setLEDcolor(3);
@@ -821,8 +786,6 @@ void setup() {
     humDay[i] = dispHum;
     //    rainHour[i] = 0;
     //    rainDay[i] = 0;
-//    altHour[i] = dispAlt;
-//    altDay[i] = dispAlt;
     if (PRESSURE) {
       pressHour[i] = 0;
       pressDay[i] = 0;
