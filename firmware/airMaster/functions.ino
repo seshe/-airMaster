@@ -383,10 +383,10 @@ void redrawPlot() {
       break;
     case 8: drawPlot(0, 3, 15, 4, PRESS_MIN, PRESS_MAX, (int*)pressDay, "p ", "da", mode);
       break;
-    case 9: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altHour, "m ", "hr", mode);
-      break;
-    case 10: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altDay, "m ", "da", mode);
-      break;
+    //case 9: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altHour, "m ", "hr", mode);
+      //break;
+    //case 10: drawPlot(0, 3, 15, 4, ALT_MIN, ALT_MAX, (int*)altDay, "m ", "da", mode);
+      //break;
   }
 #else                         // для дисплея 1602
   switch (mode) {
@@ -410,10 +410,10 @@ void redrawPlot() {
       break;
     case 8: drawPlot(0, 1, 12, 2, PRESS_MIN, PRESS_MAX, (int*)pressDay, "p", "d", mode);
       break;
-    case 9: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altHour, "m", "h", mode);
-      break;
-    case 10: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altDay, "m", "d", mode);
-      break;
+    //case 9: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altHour, "m", "h", mode);
+      //break;
+    //case 10: drawPlot(0, 1, 12, 2, ALT_MIN, ALT_MAX, (int*)altDay, "m", "d", mode);
+      //break;
   }
 #endif
 }
@@ -422,7 +422,7 @@ void readSensors() {
   bme.takeForcedMeasurement();
   dispTemp = bme.readTemperature();
   dispHum = bme.readHumidity();
-  dispAlt = ((float)dispAlt * 1 + bme.readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
+  //dispAlt = ((float)dispAlt * 1 + bme.readAltitude(SEALEVELPRESSURE_HPA)) / 2;  // усреднение, чтобы не было резких скачков (с)НР
   dispPres = (float)bme.readPressure() * 0.00750062;
 #if (CO2_SENSOR == 1)
   dispCO2 = mhz19.getPPM();
@@ -480,10 +480,10 @@ void drawSensors() {
     drawPres(dispPres, 0, 0);
   }
 
-  if (mode0scr != 5) {                      // Высота (с)НР ----------------------------
-  } else {                                  // мелко высоту не выводим (с)НР
-    drawAlt(dispAlt, 0, 0);
-  }
+  //if (mode0scr != 5) {                      // Высота (с)НР ----------------------------
+  //} else {                                  // мелко высоту не выводим (с)НР
+    //drawAlt(dispAlt, 0, 0);
+  //}
 
   if (!bigDig) {                            // дождь (с)НР -----------------------------
     lcd.setCursor(5, 3);
@@ -542,9 +542,9 @@ void drawSensors() {
       case 4:
         drawHum(dispHum, 0, 0);
         break;
-      case 5:
-        drawHum(dispAlt, 0, 0);
-        break;
+      //case 5:
+        //drawHum(dispAlt, 0, 0);
+        //break;
     }
   }
 #endif
@@ -565,7 +565,7 @@ void plotSensorsTick() {
     humHour[14] = dispHum;
     pressHour[14] = dispPres;
     //    rainHour[14] = dispRain;
-    altHour[14] = dispAlt;
+    //altHour[14] = dispAlt;
     co2Hour[14] = dispCO2;
 
     if (PRESSURE) pressHour[14] = dispRain;
@@ -641,7 +641,7 @@ void plotSensorsTick() {
     a = (float)a / (6 * sumX2 - sumX * sumX);
     delta = a * 6;      // расчёт изменения давления
     dispRain = map(delta, -250, 250, 100, -100);    // пересчитать в проценты
-    //Serial.println(String(pressure_array[5]) + " " + String(delta) + " " + String(dispRain));   // дебаг
+    DEBUGLN(String(pressure_array[5]) + " " + String(delta) + " " + String(dispRain));   // дебаг
   }
 }
 
