@@ -1,3 +1,6 @@
+/**
+ * Check brightness
+ */
 void checkBrightness() {
   if (LCD_BRIGHT == 11) {                         // если установлен автоматический режим для экрана (с)НР
     if (analogRead(PHOTO) < BRIGHT_THRESHOLD) {   // если темно
@@ -36,6 +39,9 @@ void checkBrightness() {
   255 - главное меню (podMode от 0 до 13: 1 - Сохранить, 2 - Выход, 3 - Ярк.индикатора, 4 - Ярк.экрана, 5 - Режим индикатора,
                                         6-13 вкл/выкл графики: СО2 (час, день), Влажность (час, день), Температура (час, день), Осадки (час, день))
 */
+/**
+ * Modes tick
+ */
 void modesTick() {
   button.tick();
   boolean changeFlag = false;
@@ -415,6 +421,9 @@ void modesTick() {
   }
 }
 
+/**
+ * Redraw plot
+ */
 void redrawPlot() {
   lcd.clear();
 #if (DISPLAY_TYPE == 1)       // для дисплея 2004
@@ -466,6 +475,9 @@ void redrawPlot() {
 #endif
 }
 
+/**
+ * Read sensors
+ */
 void readSensors() {
   bme.takeForcedMeasurement();
   dispTemp = bme.readTemperature();
@@ -478,10 +490,12 @@ void readSensors() {
 #endif
 }
 
+/**
+ * Drow sensors
+ */
 void drawSensors() {
 #if (DISPLAY_TYPE == 1)
   // дисплей 2004 ----------------------------------
-
   if (mode0scr != 2) {                        // Температура (с)НР ----------------------------
     lcd.setCursor(0, 2);
     if (bigDig) {
@@ -547,7 +561,6 @@ void drawSensors() {
     drawClock(hrs, mins, 0, 0); //, 1);
   }
 #else
-
   // дисплей 1602 ----------------------------------
   if (!bigDig) {              // если только мелкими цифрами (с)НР
     lcd.setCursor(0, 0);
@@ -588,6 +601,9 @@ void drawSensors() {
 #endif
 }
 
+/**
+ * Plot recalculation timers 
+ */
 void plotSensorsTick() {
   // 4 или 5 минутный таймер
   if (testTimer(hourPlotTimerD, hourPlotTimer)) {
@@ -678,7 +694,9 @@ void plotSensorsTick() {
   }
 }
 
-boolean dotFlag;
+/**
+ * Clock 
+ */
 void clockTick() {
   dotFlag = !dotFlag;
   if (dotFlag) {            // каждую секунду пересчёт времени
@@ -785,6 +803,9 @@ void clockTick() {
   }
 }
 
+/**
+ * Test timer
+ */
 boolean testTimer(unsigned long & dataTimer, unsigned long setTimer) {   // Проверка таймеров (с)НР
   if (millis() - dataTimer >= setTimer) {
     dataTimer = millis();
@@ -792,4 +813,411 @@ boolean testTimer(unsigned long & dataTimer, unsigned long setTimer) {   // Пр
   } else {
     return false;
   }
+}
+
+/**
+ * Set LED color
+ */
+void setLEDcolor(byte color) {                    // цвет индикатора задается двумя битами на каждый цвет (с)НР
+  analogWrite(LED_R, LED_ON + LED_ON * ((LED_MODE << 1) - 1) * (3 - (color & 3)) / 3);
+  analogWrite(LED_G, LED_ON + LED_ON * ((LED_MODE << 1) - 1) * (3 - ((color & 12) >> 2)) / 3);
+  analogWrite(LED_B, LED_ON + LED_ON * ((LED_MODE << 1) - 1) * (3 - ((color & 48) >> 4)) / 3);
+}
+
+/**
+ * Set LED
+ */
+void setLED() {
+  if (LED_BRIGHT < 11) {                                     // если ручные установки яркости
+    LED_ON = 255 / 100 * LED_BRIGHT * LED_BRIGHT;
+  } else {
+    checkBrightness();
+  }
+  if (LED_MODE != 0) {
+    LED_ON = 255 - LED_ON;
+  }
+
+  // ниже задается цвет индикатора в зависимости от назначенного сенсора: красный, желтый, зеленый, синий (с)НР
+
+  if ((dispCO2 >= maxCO2) && LEDType == 0 || (dispHum <= minHum) && LEDType == 1 || (dispTemp >= maxTemp) && LEDType == 2 || (dispRain <= minRain) && LEDType == 3 || (dispPres <= minPress) && LEDType == 4) {
+    setLEDcolor(3);   // красный
+  } else if ((dispCO2 >= normCO2) && LEDType == 0 || (dispHum <= normHum) && LEDType == 1 || (dispTemp >= normTemp) && LEDType == 2 || (dispRain <= normRain) && LEDType == 3 || (dispPres <= normPress) && LEDType == 4) {
+    setLEDcolor(3 + 8);   // желтый
+  } else if (LEDType == 0 || (dispHum <= maxHum) && LEDType == 1 || (dispTemp >= minTemp) && LEDType == 2 || (dispRain <= maxRain) && LEDType == 3 || LEDType == 4) {
+    setLEDcolor(12);    // зеленый
+  } else {
+    setLEDcolor(48);   // синий (если влажность превышает заданный максимум, температура ниже минимума, вероятность осадков выше maxRain)
+  }
+}
+
+/**
+ * Load plot
+ */
+void loadPlot() {
+  lcd.createChar(0, rowS);      // Стрелка вниз для индикатора пределов (с)НР
+  lcd.createChar(1, row1);
+  lcd.createChar(2, row2);
+  lcd.createChar(3, row3);
+  lcd.createChar(4, row4);
+  lcd.createChar(5, row5);
+  lcd.createChar(6, row6);
+  lcd.createChar(7, row7);
+}
+
+/**
+ * Display digit
+ */
+void digSeg(byte x, byte y, byte z1, byte z2, byte z3, byte z4, byte z5, byte z6) {   // отображение двух строк по три символа с указанием кодов символов (с)НР
+  lcd.setCursor(x, y);
+  lcd.write(z1); lcd.write(z2); lcd.write(z3);
+  if (x <= 11) {
+    lcd.print(" ");
+  }
+  lcd.setCursor(x, y + 1);
+  lcd.write(z4); lcd.write(z5); lcd.write(z6);
+  if (x <= 11) {
+    lcd.print(" ");
+  }
+}
+
+/**
+ * Draw digit
+ */
+void drawDig(byte dig, byte x, byte y) {        // рисуем цифры (с)НР ---------------------------------------
+  if (bigDig && DISPLAY_TYPE == 1) {
+    switch (dig) {            // четырехстрочные цифры (с)НР
+      case 0:
+        digSeg(x, y, 255, 0, 255, 255, 32, 255);
+        digSeg(x, y + 2, 255, 32, 255, 255, 3, 255);
+        break;
+      case 1:
+        digSeg(x, y, 32, 255, 32, 32, 255, 32);
+        digSeg(x, y + 2, 32, 255, 32, 32, 255, 32);
+        break;
+      case 2:
+        digSeg(x, y, 0, 0, 255, 1, 1, 255);
+        digSeg(x, y + 2, 255, 2, 2, 255, 3, 3);
+        break;
+      case 3:
+        digSeg(x, y, 0, 0, 255, 1, 1, 255);
+        digSeg(x, y + 2, 2, 2, 255, 3, 3, 255);
+        break;
+      case 4:
+        digSeg(x, y, 255, 32, 255, 255, 1, 255);
+        digSeg(x, y + 2, 2, 2, 255, 32, 32, 255);
+        break;
+      case 5:
+        digSeg(x, y, 255, 0, 0, 255, 1, 1);
+        digSeg(x, y + 2, 2, 2, 255, 3, 3, 255);
+        break;
+      case 6:
+        digSeg(x, y, 255, 0, 0, 255, 1, 1);
+        digSeg(x, y + 2, 255, 2, 255, 255, 3, 255);
+        break;
+      case 7:
+        digSeg(x, y, 0, 0, 255, 32, 32, 255);
+        digSeg(x, y + 2, 32, 255, 32, 32, 255, 32);
+        break;
+      case 8:
+        digSeg(x, y, 255, 0, 255, 255, 1, 255);
+        digSeg(x, y + 2, 255, 2, 255, 255, 3, 255);
+        break;
+      case 9:
+        digSeg(x, y, 255, 0, 255, 255, 1, 255);
+        digSeg(x, y + 2, 2, 2, 255, 3, 3, 255);
+        break;
+      case 10:
+        digSeg(x, y, 32, 32, 32, 32, 32, 32);
+        digSeg(x, y + 2, 32, 32, 32, 32, 32, 32);
+        break;
+    }
+  } else {
+    switch (dig) {            // двухстрочные цифры
+      case 0:
+        digSeg(x, y, 255, 1, 255, 255, 2, 255);
+        break;
+      case 1:
+        digSeg(x, y, 32, 255, 32, 32, 255, 32);
+        break;
+      case 2:
+        digSeg(x, y, 3, 3, 255, 255, 4, 4);
+        break;
+      case 3:
+        digSeg(x, y, 3, 3, 255, 4, 4, 255);
+        break;
+      case 4:
+        digSeg(x, y, 255, 0, 255, 5, 5, 255);
+        break;
+      case 5:
+        digSeg(x, y, 255, 3, 3, 4, 4, 255);
+        break;
+      case 6:
+        digSeg(x, y, 255, 3, 3, 255, 4, 255);
+        break;
+      case 7:
+        digSeg(x, y, 1, 1, 255, 32, 255, 32);
+        break;
+      case 8:
+        digSeg(x, y, 255, 3, 255, 255, 4, 255);
+        break;
+      case 9:
+        digSeg(x, y, 255, 3, 255, 4, 4, 255);
+        break;
+      case 10:
+        digSeg(x, y, 32, 32, 32, 32, 32, 32);
+        break;
+    }
+  }
+}
+
+/**
+ * Draw CO2
+ */
+void drawPPM(int dispCO2, byte x, byte y) {     // Уровень СО2 крупно на главном экране (с)НР ----------------------------
+  if (dispCO2 / 1000 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispCO2 / 1000, x, y);
+  }
+  drawDig((dispCO2 % 1000) / 100, x + 4, y);
+  drawDig((dispCO2 % 100) / 10, x + 8, y);
+  drawDig(dispCO2 % 10 , x + 12, y);
+  lcd.setCursor(15, 0);
+#if (DISPLAY_TYPE == 1)
+  lcd.print("ppm");
+#else
+  lcd.print("p");
+#endif
+}
+
+/**
+ * Draw pressure
+ */
+void drawPres(int dispPres, byte x, byte y) {   // Давление крупно на главном экране (с)НР ----------------------------
+  drawDig((dispPres % 1000) / 100, x , y);
+  drawDig((dispPres % 100) / 10, x + 4, y);
+  drawDig(dispPres % 10 , x + 8, y);
+  lcd.setCursor(x + 11, 1);
+  if (bigDig) {
+    lcd.setCursor(x + 11, 3);
+  }
+  lcd.print("mm");
+}
+
+/**
+ * Draw temperature
+ */
+void drawTemp(float dispTemp, byte x, byte y) { // Температура крупно на главном экране (с)НР ----------------------------
+  if (dispTemp / 10 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispTemp / 10, x, y);
+  }
+  drawDig(int(dispTemp) % 10, x + 4, y);
+  drawDig(int(dispTemp * 10.0) % 10, x + 9, y);
+
+  if (bigDig && DISPLAY_TYPE == 1) {
+    lcd.setCursor(x + 7, y + 3);
+    lcd.write(1);             // десятичная точка
+  } else {
+    lcd.setCursor(x + 7, y + 1);
+    lcd.write(0B10100001);    // десятичная точка
+  }
+  lcd.setCursor(x + 13, y);
+  lcd.write(223);             // градусы
+}
+
+/**
+ * Draw humidity
+ */
+void drawHum(int dispHum, byte x, byte y) {   // Влажность крупно на главном экране (с)НР ----------------------------
+  if (dispHum / 100 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(dispHum / 100, x, y);
+  }
+  if ((dispHum % 100) / 10 == 0) {
+    drawDig(0, x + 4, y);
+  } else {
+    drawDig(dispHum / 10, x + 4, y);
+  }
+  drawDig(int(dispHum) % 10, x + 8, y);
+  if (bigDig && DISPLAY_TYPE == 1) {
+    lcd.setCursor(x + 12, y + 1);
+    lcd.print("\245\4");
+    lcd.setCursor(x + 12, y + 2);
+    lcd.print("\5\245");
+  } else {
+    lcd.setCursor(x + 12, y + 1);
+    lcd.print("%");
+  }
+}
+
+/**
+ * Draw clock
+ */
+void drawClock(byte hours, byte minutes, byte x, byte y) {    // рисуем время крупными цифрами -------------------------------------------
+  if (hours > 23 || minutes > 59) {
+    return;
+  }
+  if (hours / 10 == 0) {
+    drawDig(10, x, y);
+  } else {
+    drawDig(hours / 10, x, y);
+  }
+  drawDig(hours % 10, x + 4, y);
+  // тут должны быть точки. Отдельной функцией
+  drawDig(minutes / 10, x + 8, y);
+  drawDig(minutes % 10, x + 12, y);
+}
+
+/**
+ * Draw data
+ */
+void drawData() {                     // выводим дату -------------------------------------------------------------
+  int Y = 0;
+  if (DISPLAY_TYPE == 1 && mode0scr == 1) {
+    Y = 2;
+  }
+  if (!bigDig) {              // если 4-х строчные цифры, то дату, день недели (и секунды) не пишем - некуда (с)НР
+    lcd.setCursor(15, 0 + Y);
+    if (now.day() < 10) {
+      lcd.print(0);
+    }
+    lcd.print(now.day());
+    lcd.print(".");
+    if (now.month() < 10) {
+      lcd.print(0);
+    }
+    lcd.print(now.month());
+
+    if (DISP_MODE == 0) {
+      lcd.setCursor(16, 1);
+      lcd.print(now.year());
+    } else {
+      loadClock();              // принудительно обновляем знаки, т.к. есть жалобы на необновление знаков в днях недели (с)НР
+      lcd.setCursor(18, 1);
+      int dayofweek = now.dayOfTheWeek();
+      lcd.print(dayNames[dayofweek]);
+      // if (hrs == 0 && mins == 0 && secs <= 1) loadClock();   // Обновляем знаки, чтобы русские буквы в днях недели тоже обновились. (с)НР
+    }
+  }
+}
+
+/**
+ * Draw plot
+ */
+void drawPlot(byte pos, byte row, byte width, byte height, int min_val, int max_val, int *plot_array, String label1, String label2, int stretch) {  // график ---------------------------------
+  int max_value = -32000;
+  int min_value = 32000;
+
+  for (byte i = 0; i < 15; i++) {
+    max_value = max(plot_array[i] , max_value);
+    min_value = min(plot_array[i] , min_value);
+  }
+
+  // меняем пределы графиков на предельные/фактические значения, одновременно рисуем указатель пределов (стрелочки вверх-вниз) (с)НР
+  lcd.setCursor(15, 0);
+  if ((MAX_ONDATA & (1 << (stretch - 1))) > 0) {    // побитовое сравнение 1 - растягиваем, 0 - не растягиваем (по указанным пределам) (с)НР
+    //    max_val = min(max_value, max_val);
+    //    min_val = max(min_value, min_val);
+    max_val = max_value;
+    min_val = min_value;
+#if (DISPLAY_TYPE == 1)
+    lcd.write(0b01011110);
+    lcd.setCursor(15, 3);
+    lcd.write(0);
+#endif
+  } else {
+#if (DISPLAY_TYPE == 1)
+    lcd.write(0);
+    lcd.setCursor(15, 3);
+    lcd.write(0b01011110);
+#endif
+  }
+
+  if (min_val >= max_val) max_val = min_val + 1;
+#if (DISPLAY_TYPE == 1)
+  lcd.setCursor(15, 1); lcd.write(0b01111100);
+  lcd.setCursor(15, 2); lcd.write(0b01111100);
+
+  DEBUGLN(max_val);DEBUGLN(min_val);  // отладка (с)НР
+
+  lcd.setCursor(16, 0); lcd.print(max_value);
+  lcd.setCursor(16, 1); lcd.print(label1); lcd.print(label2);
+  lcd.setCursor(16, 2); lcd.print(plot_array[14]);
+  lcd.setCursor(16, 3); lcd.print(min_value);
+#else
+  lcd.setCursor(12, 0); lcd.print(label1);
+  lcd.setCursor(13, 0); lcd.print(max_value);
+  lcd.setCursor(12, 1); lcd.print(label2);
+  lcd.setCursor(13, 1); lcd.print(min_value);
+#endif
+  for (byte i = 0; i < width; i++) {                  // каждый столбец параметров
+    int fill_val = plot_array[i];
+    fill_val = constrain(fill_val, min_val, max_val);
+    byte infill, fract;
+    // найти количество целых блоков с учётом минимума и максимума для отображения на графике
+    if ((plot_array[i]) > min_val) {
+      infill = floor((float)(plot_array[i] - min_val) / (max_val - min_val) * height * 10);
+    } else {
+      infill = 0;
+    }
+    fract = (float)(infill % 10) * 8 / 10;            // найти количество оставшихся полосок
+    infill = infill / 10;
+
+    for (byte n = 0; n < height; n++) {     // для всех строк графика
+      if (n < infill && infill > 0) {       // пока мы ниже уровня
+        lcd.setCursor(i, (row - n));        // заполняем полными ячейками
+        lcd.write(255);
+      }
+      if (n >= infill) {                    // если достигли уровня
+        lcd.setCursor(i, (row - n));
+        if (n == 0 && fract == 0) {         // если нижний перел графика имеет минимальное значение, то рисуем одну полоску, чтобы не было пропусков (с)НР
+          fract++;
+        }
+        if (fract > 0) {                   // заполняем дробные ячейки
+          lcd.write(fract);
+        } else {                           // если дробные == 0, заливаем пустой
+          lcd.write(16);
+        }
+        for (byte k = n + 1; k < height; k++) { // всё что сверху заливаем пустыми
+          lcd.setCursor(i, (row - k));
+          lcd.write(16);
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Load clock 
+ */
+void loadClock() {
+  if (bigDig && (DISPLAY_TYPE == 1)) {              // для четырехстрочных цифр (с)НР
+    lcd.createChar(0, UT);
+    lcd.createChar(1, row3);
+    lcd.createChar(2, UB);
+    lcd.createChar(3, row5);
+    lcd.createChar(4, KU);
+    lcd.createChar(5, KD);
+  } else {                                            // для двустрочных цифр (с)НР
+    lcd.createChar(0, row2);
+    lcd.createChar(1, UB);
+    lcd.createChar(2, row3);
+    lcd.createChar(3, UMB);
+    lcd.createChar(4, LMB);
+    lcd.createChar(5, LM2);
+  }
+
+#if (LANG == 1)
+  if (now.dayOfTheWeek() == 4) {          // Для четверга в ячейку запоминаем "Ч", для субботы "Б", иначе "П" (с)НР
+    lcd.createChar(7, CH);  // Ч (с)НР
+  } else if (now.dayOfTheWeek() == 6) {
+    lcd.createChar(7, BB);  // Б (с)НР
+  } else {
+    lcd.createChar(7, PP);  // П (с)НР
+  }
+#endif
 }
