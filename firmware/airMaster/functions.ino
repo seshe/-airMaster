@@ -201,6 +201,7 @@ void modesTick() {
   if (changeFlag) {
     if (mode >= 240) {
       lcd.clear();
+#if (LANG == 1)
       lcd.createChar(1, BM);  //Ь
       lcd.createChar(2, IY);  //Й
       lcd.createChar(3, DD);  //Д
@@ -209,10 +210,11 @@ void modesTick() {
       lcd.createChar(6, YY);  //Ы
       lcd.createChar(7, AA);  //Э
       lcd.createChar(0, ZZ);  //Ж
+#endif
       lcd.setCursor(0, 0);
     }
     if (mode == 255) {          // Перебираем варианты в главном меню (с)НР
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
       lcd.print("HACTPO\2K\4:");              // ---Настройки
 #else
       lcd.print("Setup:");
@@ -220,35 +222,35 @@ void modesTick() {
       lcd.setCursor(0, 1);
       switch (podMode) {
         case 1:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("COXPAH\4T\1");     // ---Сохранить
 #else
           lcd.print("Save");
 #endif
           break;
         case 2:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("B\6XO\3");         // --- Выход
 #else
           lcd.print("Exit");
 #endif
           break;
         case 5:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("PE\10.\4H\3\4KATOPA");  // ---Реж.индик.
 #else
           lcd.print("indicator mode");
 #endif
           break;
         case 3:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("\5PK.\4H\3\4KATOPA");  // ---Ярк.индик.
 #else
           lcd.print("indicator brt.");
 #endif
           break;
         case 4:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("\5PK.\7KPAHA");    // ---Ярк.экрана
 #else
           lcd.print("Bright LCD");
@@ -256,11 +258,11 @@ void modesTick() {
           break;
       }
       if (podMode >= 6 && podMode <= 17) {
+        lcd.setCursor(10, 0);
+#if (LANG == 1)
         lcd.createChar(8, FF);  //ф
         lcd.createChar(7, GG);  //Г
         lcd.createChar(5, LL);  //Л
-        lcd.setCursor(10, 0);
-#if (WEEK_LANG == 1)
         lcd.print("\7PA\10\4KOB");            // ---графиков
 #else
         lcd.print("Charts  ");
@@ -270,7 +272,7 @@ void modesTick() {
            lcd.print("CO2 ");
         }
         if ((12 & (1 << (podMode - 6))) != 0) {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("B\5,% ");
 #else
           lcd.print("Hum,%");
@@ -287,7 +289,7 @@ void modesTick() {
 #endif
         }
         if ((768 & (1 << (podMode - 6))) != 0) {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("B\6C,m  ");
 #else
           lcd.print("hgt,m  ");
@@ -295,29 +297,29 @@ void modesTick() {
         }
 
         if ((1365 & (1 << (podMode - 6))) != 0) {
-          lcd.createChar(3, CH);  //Ч
           lcd.setCursor(8, 1);
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
+          lcd.createChar(3, CH);  //Ч
           lcd.print("\3AC:");
 #else
           lcd.print("Hour:");
 #endif
         } else {
           lcd.setCursor(7, 1);
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("\3EH\1:");
 #else
           lcd.print("Day: ");
 #endif
         }
         if ((VIS_ONDATA & (1 << (podMode - 6))) != 0) {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("BK\5 ");
 #else
           lcd.print("On  ");
 #endif
         } else {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("B\6K\5");
 #else
           lcd.print("Off ");
@@ -327,12 +329,12 @@ void modesTick() {
     }
     if (mode == 252) {                        // --------------------- показать  "Реж.индикатора"
       LEDType = podMode;
+      lcd.setCursor(0, 0);
+#if (LANG == 1)
       lcd.createChar(6, LL);  //Л
       lcd.createChar(3, DD);  //Д
       lcd.createChar(5, II);  //И
       lcd.createChar(8, ZZ);  //Ж
-      lcd.setCursor(0, 0);
-#if (WEEK_LANG == 1)
       lcd.print("PE\10.\4H\3\4KATOPA:");
 #else
       lcd.print("indicator mode:");
@@ -343,7 +345,7 @@ void modesTick() {
           lcd.print("CO2   ");
           break;
         case 1:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("B\6A\10H.");          // влажн.
 #else
           lcd.print("Humid.");
@@ -353,14 +355,14 @@ void modesTick() {
           lcd.print("t\337     ");
           break;
         case 3:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("OCA\3K\5");          // осадки
 #else
           lcd.print("rain  ");
 #endif
           break;
         case 4:
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
           lcd.print("\3AB\6EH\5E");       // давление
 #else
           lcd.print("pressure");
@@ -370,14 +372,14 @@ void modesTick() {
 
     }
     if (mode == 253) {                        // --------------------- показать  "Ярк.экрана"
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
       lcd.print("\5PK.\7KPAHA:");// + String(LCD_BRIGHT * 10) + "%  ");
 #else
       lcd.print("Bright LCD:");
 #endif
       //lcd.setCursor(11, 0);
       if (LCD_BRIGHT == 11) {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
         lcd.print("ABTO ");
 #else
         lcd.print("Auto ");
@@ -385,14 +387,14 @@ void modesTick() {
       } else lcd.print(String(LCD_BRIGHT * 10) + "%");
     }
     if (mode == 254) {                        // --------------------- показать  "Ярк.индикатора"
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
       lcd.print("\5PK.\4H\3\4K.:");// + String(LED_BRIGHT * 10) + "%  ");
 #else
       lcd.print("indic.brt.:");
 #endif
       //lcd.setCursor(15, 0);
       if (LED_BRIGHT == 11) {
-#if (WEEK_LANG == 1)
+#if (LANG == 1)
         lcd.print("ABTO ");
 #else
         lcd.print("Auto ");
