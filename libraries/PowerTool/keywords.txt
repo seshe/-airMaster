@@ -1,29 +1,29 @@
 #######################################
-# Syntax Coloring Map For GyverTimer
+# Syntax Coloring Map For PowerTool
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-
-GTimer_ms		KEYWORD1
-GTimer_us		KEYWORD1
-GyverTimer		KEYWORD1
+PowerTool	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setInterval		KEYWORD2
-isReady			KEYWORD2
-reset			KEYWORD2
-setMode			KEYWORD2
-start			KEYWORD2
-stop			KEYWORD2
+getVCC	KEYWORD2
+getVoltage	KEYWORD2
+constantWizard	KEYWORD2
+restoreConstant	KEYWORD2
+setConst	KEYWORD2
+getConst	KEYWORD2
+
+lithiumPercent	KEYWORD2
+alkaline3Percent	KEYWORD2
+nickel3Percent	KEYWORD2
+nickel4Percent	KEYWORD2
+mVtoPercent	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
-
-AUTO		LITERAL1
-MANUAL		LITERAL1

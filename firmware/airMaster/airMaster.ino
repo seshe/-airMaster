@@ -28,9 +28,51 @@
   с фоторезистора.
 */
 
-//#define DEBUG_ENABLE
+//#define DEBUG_ENABLE 1
 
-#ifdef DEBUG_ENABLE
+// библиотеки
+#include "EEPROM.h"
+#include "Wire.h"
+
+//#define CALIBRATE_VCC 1 /* Need to save the correct voltage constant to the EEPROM, to get it later we need to call restoreConstant(adr)**/
+#include "PowerTool.h"
+#define VCC_CONST_ADR 1000
+
+// если дисплей не заводится - поменяйте адрес (строка 54)
+#include "LiquidCrystal_I2C.h"
+#define DISPLAY_ADDR 0x27 // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
+#define DISPLAY_TYPE 1    // тип дисплея: 1 - 2004 (большой), 0 - 1602 (маленький)
+#if (DISPLAY_TYPE == 1)
+LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
+#else
+LiquidCrystal_I2C lcd(DISPLAY_ADDR, 16, 2);
+#endif
+
+#include "RTClib.h"
+RTC_DS3231 rtc;
+DateTime now;
+
+// адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
+// стоковый адрес был 0x77, у китайского модуля адрес 0x76.
+// Так что если юзаете не библиотеку из архива - не забудьте поменять
+#include "Adafruit_Sensor.h"
+#include "Adafruit_BME280.h"
+Adafruit_BME280 bme;
+
+#define CO2_SENSOR 1      // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
+#if (CO2_SENSOR == 1)
+#include "MHZ19_uart.h"
+MHZ19_uart mhz19;
+#endif
+
+
+#include "GyverButton.h"
+//Button pin
+#define BTN_PIN 4
+GButton button(BTN_PIN, LOW_PULL, NORM_OPEN);
+
+//------- Debuger --------
+#if (DEBUG_ENABLE)
 #define DEBUGLN(x) Serial.println(x)
 #define DEBUG(x) Serial.print(x)
 #else
@@ -57,9 +99,6 @@ byte powerStatus = 0;         // индикатор вида питания: 255
 #define DISP_MODE 1       // в правом верхнем углу отображать: 0 - год, 1 - день недели и секунды
 #define LANG 0            // язык 0 - английский, 1 - русский
 #define PRESSURE 0        // 0 - график давления, 1 - график прогноза дождя (вместо давления). Не забудь поправить пределы графика
-#define CO2_SENSOR 1      // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
-#define DISPLAY_TYPE 1    // тип дисплея: 1 - 2004 (большой), 0 - 1602 (маленький)
-#define DISPLAY_ADDR 0x27 // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
 
 // пределы для индикатора (с)НР
 #define normCO2 800       // и выше - желтый
@@ -86,8 +125,6 @@ byte powerStatus = 0;         // индикатор вида питания: 255
 
 byte LEDType = 0;         //  при отсутствии сохранения в EEPROM: привязка индикатора к датчикам: 0 - СО2, 1 - Влажность, 2 - Температура, 3 - Осадки
 
-#include "EEPROM.h"
-
 int MAX_ONDATA = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048; // при отсутствии сохранения в EEPROM: максимальные показания графиков исходя из накопленных фактических (но в пределах лимитов) данных вместо указанных пределов, 0 - использовать фиксированные пределы (с)НР
 int VIS_ONDATA = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048; // при отсутствии сохранения в EEPROM: отображение показания графиков, 0 - Не отображать (с)НР
 
@@ -111,12 +148,6 @@ int VIS_ONDATA = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048; /
 #define CO2_MIN 400
 #define CO2_MAX 2000
 
-// адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
-// стоковый адрес был 0x77, у китайского модуля адрес 0x76.
-// Так что если юзаете не библиотеку из архива - не забудьте поменять
-
-// если дисплей не заводится - поменяйте адрес (строка 54)
-
 // пины
 #define BACKLIGHT 10
 #define PHOTO A3
@@ -128,30 +159,6 @@ int VIS_ONDATA = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048; /
 #define LED_R 9
 #define LED_G 6
 #define LED_B 5
-#define BTN_PIN 4
-
-// библиотеки
-#include "Wire.h"
-#include "LiquidCrystal_I2C.h"
-
-#if (DISPLAY_TYPE == 1)
-LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
-#else
-LiquidCrystal_I2C lcd(DISPLAY_ADDR, 16, 2);
-#endif
-
-#include "RTClib.h"
-RTC_DS3231 rtc;
-DateTime now;
-
-#include "Adafruit_Sensor.h"
-#include "Adafruit_BME280.h"
-Adafruit_BME280 bme;
-
-#if (CO2_SENSOR == 1)
-#include "MHZ19_uart.h"
-MHZ19_uart mhz19;
-#endif
 
 unsigned long sensorsTimer = SENS_TIME;
 unsigned long drawSensorsTimer = SENS_TIME;
@@ -177,9 +184,6 @@ unsigned long dayPlotTimerD = 0;
 unsigned long plotTimerD = 0;
 unsigned long predictTimerD = 0;
 unsigned long brightTimerD = 0;
-
-#include "GyverButton.h"
-GButton button(BTN_PIN, LOW_PULL, NORM_OPEN);
 
 int8_t hrs, mins, secs;
 byte mode = 0;
@@ -323,10 +327,18 @@ byte LED_OFF = (255);
  * Setup
  */
 void setup() {
-#ifdef DEBUG_ENABLE
-    Serial.begin(9600);
+#if (DEBUG_ENABLE || CALIBRATE_VCC)
+  Serial.begin(9600);
 #endif
 
+#ifdef CALIBRATE_VCC
+  //constantWizard();
+#endif
+
+#ifndef CALIBRATE_VCC
+#ifdef VCC_CONST_ADR
+  //restoreConstant(VCC_CONST_ADR)
+#endif
   pinMode(BACKLIGHT, OUTPUT);
   pinMode(LED_COM, OUTPUT);
   pinMode(LED_R, OUTPUT);
@@ -448,15 +460,16 @@ void setup() {
   mins = now.minute();
   hrs = now.hour();
 
-  bme.takeForcedMeasurement();
-  uint32_t Pressure = bme.readPressure();
+  readSensors();
+
+  bme.takeForcedMeasurement(); //TODO we do the same in the readSensors().
+  uint32_t Pressure = bme.readPressure();//TODO maybe not use variable? We can use dispPres as it just updated in the readSensors()
   for (byte i = 0; i < 6; i++) {          // счётчик от 0 до 5
     pressure_array[i] = Pressure; // забить весь массив текущим давлением
     //time_array[i] = i;                    // забить массив времени числами 0 - 5
   }
 
   // заполняем графики текущим значением
-  readSensors();
   for (byte i = 0; i < 15; i++) {   // счётчик от 0 до 14
     tempHour[i] = dispTemp;
     tempDay[i] = dispTemp;
@@ -477,12 +490,18 @@ void setup() {
   loadClock();
   // readSensors();
   drawSensors();
+  #endif
 }
 
 /**
  * Loop
  */
 void loop() {
+  //delay(1);
+  //setConst(1107);
+  //Serial.println(getVoltage(A0));
+  //delay(50);;
+  #ifndef CALIBRATE_VCC
   if (testTimer(brightTimerD, brightTimer)) {
     checkBrightness();  // яркость
   }
@@ -505,4 +524,5 @@ void loop() {
       redrawPlot();  // перерисовываем график
     }
   }
+  #endif
 }

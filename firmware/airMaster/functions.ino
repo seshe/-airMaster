@@ -1,3 +1,4 @@
+#ifndef CALIBRATE_VCC
 /**
  * Check brightness
  */
@@ -45,8 +46,8 @@ void checkBrightness() {
 void modesTick() {
   button.tick();
   boolean changeFlag = false;
+  //Display navigation
   if (button.isSingle()) {    // одинарное нажатие на кнопку
-
     if (mode >= 240) {
       podMode++;
       switch (mode) {
@@ -154,6 +155,7 @@ void modesTick() {
           VIS_ONDATA = VIS_ONDATA ^ (1 << (podMode - 6));  // вкл/выкл отображения графиков
         }
         if (podMode == 1) {                                           // если Сохранить
+        //TODO mov to function
           if (EEPROM.read(2) != (MAX_ONDATA & 255)) {
             EEPROM.write(2, (MAX_ONDATA & 255));
           }
@@ -204,6 +206,7 @@ void modesTick() {
     changeFlag = true;
   }
 
+//Show menu on display
   if (changeFlag) {
     if (mode >= 240) {
       lcd.clear();
@@ -482,7 +485,7 @@ void readSensors() {
   bme.takeForcedMeasurement();
   dispTemp = bme.readTemperature();
   dispHum = bme.readHumidity();
-  dispPres = (float)bme.readPressure() * 0.00750062;
+  dispPres = (float)bme.readPressure() * 0.00750062;//TODO maybe need correct round
 #if (CO2_SENSOR == 1)
   dispCO2 = mhz19.getPPM();
 #else
@@ -659,9 +662,9 @@ void plotSensorsTick() {
   // 10 минутный таймер
   if (testTimer(predictTimerD, predictTimer)) {
     // тут делаем линейную аппроксимацию для предсказания погоды
-    long averPress = 0;
+    uint32_t averPress = 0;//TODO, maybe int will be anought here?
     for (byte i = 0; i < 10; i++) {
-      bme.takeForcedMeasurement();
+      bme.takeForcedMeasurement();//TODO is it good idea to do this in the loop?
       averPress += bme.readPressure();
       delay(1);
     }
@@ -740,7 +743,7 @@ void clockTick() {
       if (analogRead(A1) > 900 || analogRead(A0) < 300 || (analogRead(A1) < 300 && analogRead(A0) < 300)) {
          powerStatus = 0;
       } else {
-        powerStatus = (constrain((int)analogRead(A0) * 5.2 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1;
+        powerStatus = (constrain((int)analogRead(A0) * 5.2 / 1023.0, 3.0, 4.2) - 3.0) / ((4.2 - 3.0) / 6.0) + 1;//TODO
       }
 
       if (powerStatus) {
@@ -1221,3 +1224,4 @@ void loadClock() {
   }
 #endif
 }
+#endif
