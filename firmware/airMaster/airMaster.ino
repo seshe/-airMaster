@@ -324,8 +324,8 @@ byte LED_OFF = (255);
 #endif
 
 /**
- * Setup
- */
+   Setup
+*/
 void setup() {
 #if (DEBUG_ENABLE || CALIBRATE_VCC)
   Serial.begin(9600);
@@ -476,11 +476,11 @@ void setup() {
     humHour[i] = dispHum;
     humDay[i] = dispHum;
 #if (PRESSURE == 1)
-      pressHour[i] = 0;
-      pressDay[i] = 0;
+    pressHour[i] = 0;
+    pressDay[i] = 0;
 #else
-      pressHour[i] = dispPres;
-      pressDay[i] = dispPres;
+    pressHour[i] = dispPres;
+    pressDay[i] = dispPres;
 #endif
   }
 
@@ -490,18 +490,18 @@ void setup() {
   loadClock();
   // readSensors();
   drawSensors();
-  #endif
+#endif
 }
 
 /**
- * Loop
- */
+   Loop
+*/
 void loop() {
   //delay(1);
-  //setConst(1107);
+  //setConst(1109);//best const
   //Serial.println(getVoltage(A0));
-  //delay(50);;
-  #ifndef CALIBRATE_VCC
+  //delay(10);;
+#ifndef CALIBRATE_VCC
   if (testTimer(brightTimerD, brightTimer)) {
     checkBrightness();  // яркость
   }
@@ -524,5 +524,5 @@ void loop() {
       redrawPlot();  // перерисовываем график
     }
   }
-  #endif
+#endif
 }
